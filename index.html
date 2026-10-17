@@ -828,7 +828,7 @@ function showResult(n){
   const {blob, name} = lastResult;
   const url = URL.createObjectURL(blob);
   const canShare = !!(navigator.canShare && navigator.canShare({files: [new File([blob], name, {type: "application/pdf"})]}));
-  $("#result").innerHTML = `<div class="alert ok">✅ تم: ${n} تقرير — ${(blob.size / 1e6).toFixed(1)} ميجا<br><span class="small">${esc(name)}</span></div>
+  $("#result").innerHTML = `<div class="alert ok">✅ تم: ${nReports(n).replace(/[()]/g, "")} — ${(blob.size / 1e6).toFixed(1)} ميجا<br><span class="small">${esc(name)}</span></div>
     <div class="done">
       <a class="btn" href="${url}" download="${esc(name)}">تنزيل الملف</a>
       ${canShare ? '<button class="btn sec" id="shareBtn" type="button">مشاركة (واتساب / إيميل)</button>' : ""}
