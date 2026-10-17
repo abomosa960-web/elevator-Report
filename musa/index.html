@@ -241,9 +241,10 @@ let lastRun=null,boardMem=[],highlight=-1;
 try{const b=JSON.parse(localStorage.getItem('musaBoard')||'[]');if(Array.isArray(b))boardMem=b.filter(r=>r&&r.name).slice(0,5)}catch(e){}
 // shared online board: a Google Apps Script web app writing to a Google Sheet (see apps-script.gs)
 const SCORE_URL='https://script.google.com/macros/s/AKfycby2kddRwL8Mo90S-37b06rSg7ghreGcfkqZQTkeU0h8z8WDmPPcqoMdTY-j4Bf_6mz_/exec';
-let sharedBoard=null;
+let sharedBoard=null,remoteLoading=false;
 function remote(params){const q=new URLSearchParams(params).toString();return fetch(SCORE_URL+(SCORE_URL.includes('?')?'&':'?')+q,{redirect:'follow'}).then(r=>r.json())}
-function refreshRemote(){if(!SCORE_URL.startsWith('https://'))return;remote({action:'top'}).then(d=>{if(d&&Array.isArray(d.top)){sharedBoard=d.top;if(!$('boardPanel').hidden)showBoard(boardFrom)}}).catch(()=>{})}
+function refreshRemote(){if(!SCORE_URL.startsWith('https://'))return;remoteLoading=true;const done=()=>{remoteLoading=false;if(!$('boardPanel').hidden)showBoard(boardFrom)};
+  remote({action:'top',_:Date.now()}).then(d=>{if(d&&Array.isArray(d.top))sharedBoard=d.top;done()}).catch(done)}
 refreshRemote();
 function loadBoard(){const all=[...(sharedBoard||[]),...boardMem];const seen=new Set(),out=[];
   for(const r of all){const k=r.name+'|'+r.score+'|'+r.t;if(seen.has(k))continue;seen.add(k);out.push(r)}
@@ -251,7 +252,7 @@ function loadBoard(){const all=[...(sharedBoard||[]),...boardMem];const seen=new
 function saveBoard(b,entry){boardMem=b.slice();try{localStorage.setItem('musaBoard',JSON.stringify(boardMem))}catch(e){}
   if(entry&&SCORE_URL.startsWith('https://')){remote({action:'add',name:entry.name,score:entry.score,coins:entry.coins,t:entry.t}).then(d=>{if(d&&Array.isArray(d.top)){sharedBoard=d.top;if(!$('boardPanel').hidden)showBoard(boardFrom)}}).catch(()=>{})}}
 function showBoard(from){const b=loadBoard(),ol=$('boardList');ol.textContent='';
-  if(!b.length){const d=document.createElement('div');d.className='empty';d.textContent='لسه ما حدش اتسجل. العب وسجّل اسمك!';ol.appendChild(d)}
+  if(!b.length){const d=document.createElement('div');d.className='empty';d.textContent=remoteLoading?'جاري تحميل لوحة الأبطال...':'لسه ما حدش اتسجل. العب وسجّل اسمك!';ol.appendChild(d)}
   b.forEach((r,i)=>{const li=document.createElement('li');if(r.name+'|'+r.score+'|'+r.t===highlight)li.className='me';
     const rk=document.createElement('span');rk.className='rk';rk.textContent=i+1;
     const nm=document.createElement('span');nm.className='nm';nm.textContent=r.name;
@@ -261,7 +262,7 @@ function showBoard(from){const b=loadBoard(),ol=$('boardList');ol.textContent=''
   boardFrom=from;$(from).hidden=true;$('boardPanel').hidden=false;$('boardClose').focus()}
 let boardFrom='startPanel';
 $('boardBtn1').onclick=()=>{highlight=-1;refreshRemote();showBoard('startPanel')};
-$('boardBtn2').onclick=()=>showBoard('overPanel');
+$('boardBtn2').onclick=()=>{refreshRemote();showBoard('overPanel')};
 $('boardClose').onclick=()=>{$('boardPanel').hidden=true;$(boardFrom).hidden=false};
 function saveName(){if(!lastRun)return;const name=$('nameInput').value.trim().slice(0,18);if(!name){$('nameInput').focus();return}
   try{localStorage.setItem('musaName',name)}catch(e){}
