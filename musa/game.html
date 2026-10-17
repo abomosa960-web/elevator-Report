@@ -288,7 +288,7 @@ function updateIntro(dt){
   if(!I.m1&&T>0.4){if(playVox('man1')||T>1.2){I.m1=T;I.m1e=T+voxLen('man1',2.8)}}
   if(I.m1&&!I.b1&&T>I.m1e+0.35){playVox('boy1');I.b1=T;I.b1e=T+Math.max(2.4,voxLen('boy1',2.4))}
   if(I.broken)once('m2',()=>{playVox('man2');I.m2e=T+voxLen('man2',3)});
-  const WALK=I.b1?I.b1e+0.2:99;
+  const WALK=I.b1?I.b1e+0.2:99;I.walkAt=WALK;
   const target=T<WALK?0:(!I.broken?2.8:0.6);I.sp+=(target-I.sp)*Math.min(1,dt*3);
   const dz=I.sp*dt;dist+=dz;I.manZ-=dz;I.shZ-=dz;
   for(const b of builds){b.z-=dz;if(b.z+b.d<-1){const far=Math.max(...builds.filter(q=>q.side===b.side).map(q=>q.z+q.d));Object.assign(b,mkBuild(b.side,far+0.4+Math.random()*1.2))}}
@@ -568,7 +568,7 @@ function drawBoard(a,air){const u=a[2];ctx.save();ctx.translate(a[0],a[1]-u*0.05
   ctx.restore()}
 
 /* ---------- Musa: pose sprites (run cycle, jump, slide, get up) ---------- */
-function drawRig(sn,lift){
+function drawRig(sn,lift,stand){
   // origin: feet, bottom-centre on the spine; drawn in source pixels
   ctx.translate(-76,-452);
   const arm=(w,mirror)=>{ctx.save();if(mirror){ctx.translate(156,0);ctx.scale(-1,1)}
@@ -577,8 +577,11 @@ function drawRig(sn,lift){
     ctx.drawImage(RIG.arm,134-146,142-150);ctx.restore()};
   const wR=sn,wL=-sn;
   if(wR<0)arm(wR,false);if(wL<0)arm(wL,true);          // arm swinging forward goes behind the body
-  ctx.save();if(sn<0){ctx.translate(136,0);ctx.scale(-1,1)}
-  ctx.translate(0,232);ctx.scale(1,1-lift);ctx.drawImage(RIG.legs,0,-232);ctx.restore();
+  if(stand){ // both feet on the ground: the planted right leg, and its mirror for the left
+    for(const m of[false,true]){ctx.save();if(m){ctx.translate(140,0);ctx.scale(-1,1)}
+      ctx.beginPath();ctx.rect(70,232,111,220);ctx.clip();ctx.drawImage(RIG.legs,0,0);ctx.restore()}}
+  else{ctx.save();if(sn<0){ctx.translate(136,0);ctx.scale(-1,1)}
+  ctx.translate(0,232);ctx.scale(1,1-lift);ctx.drawImage(RIG.legs,0,-232);ctx.restore()}
   ctx.drawImage(RIG.torso,0,0);
   if(wR>=0)arm(wR,false);if(wL>=0)arm(wL,true);        // arm swinging back comes toward the camera
 }
@@ -596,12 +599,13 @@ function drawPlayer(){
     ctx.drawImage(s.img,-wpx*s.cx,-hpx,wpx,hpx);ctx.restore()}
   else{if(!RIG.torso.complete||!RIG.legs.complete||!RIG.arm.complete)return;
     const k=RIG.h*a[2]/452;let sn=Math.sin(stride);if(air)sn=0.5;
+    const standing=state==='intro'&&intro&&!(intro.t>intro.walkAt);if(standing)sn=Math.sin(tAll*3)*0.12;
     const riding=pw.board>0&&running&&state!=='menu';
     if(riding){drawBoard(a,air);sn=0.18+Math.sin(tAll*2.5)*0.08}
     if(getUp>0)sy=1-getUp*1.6;
-    const bob=riding?a[2]*0.16:(!air?Math.abs(Math.cos(stride))*RIG.h*a[2]*0.03:0);
+    const bob=riding?a[2]*0.16:(standing?0:(!air?Math.abs(Math.cos(stride))*RIG.h*a[2]*0.03:0));
     ctx.save();ctx.translate(a[0],a[1]-bob);if(inv>0&&Math.sin(tAll*30)>0)ctx.globalAlpha=.45;if(running)ctx.rotate((lane*LANE-px)*0.1+sn*0.025);
-    ctx.scale(k,k*sy);drawRig(sn,air?0.08:0);ctx.restore()}
+    ctx.scale(k,k*sy);drawRig(sn,air?0.08:0,standing);ctx.restore()}
   if(pw.boots>0){const g=P(px,gh,PZ);ctx.fillStyle='rgba(80,230,150,.35)';ctx.beginPath();ctx.ellipse(g[0],g[1],g[2]*.4,g[2]*.12,0,0,7);ctx.fill()}
   if(pw.magnet>0){const g=P(px,py+1.0,PZ);ctx.strokeStyle=`rgba(90,160,255,${.35+.25*Math.sin(tAll*8)})`;ctx.lineWidth=3;ctx.beginPath();ctx.arc(g[0],g[1],g[2]*1.0,0,7);ctx.stroke()}
 }
