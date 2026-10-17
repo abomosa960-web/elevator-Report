@@ -175,6 +175,11 @@ textarea{width:100%;font-family:monospace;font-size:12px;direction:ltr;min-heigh
 <div class="bar hidden" id="bar">
   <div class="in">
     <div style="flex:1">
+      <div class="alert warn hidden" id="missWarn" style="margin:0 0 8px;font-size:14px"></div>
+      <div class="done hidden" id="missAsk" style="margin:0 0 8px">
+        <button class="btn" id="missGo" type="button">أكمل وأنشئ الملف</button>
+        <button class="btn sec" id="missBack" type="button">رجوع للمراجعة</button>
+      </div>
       <button class="btn" id="genBtn" type="button" style="width:100%">إنشاء ملف PDF</button>
       <div class="prog hidden" id="prog"><i></i></div>
       <div class="muted small" id="progTxt" style="text-align:center"></div>
@@ -227,6 +232,7 @@ let BAD = [];          // rows that could not be read (no date)
 let items = [];        // review list
 let uid = 0;
 let lastResult = null;
+let ALL_UNITS = [];
 
 
 // ------------------------------------------------------------ sheet reading
@@ -445,6 +451,7 @@ function renderCoverage(pool, chosen, types, hasTypes, a, b){
   const have = {};
   chosen.forEach(r => have[r.unit] = (have[r.unit] || 0) + 1);
   const missing = units.filter(u => !have[u]);
+  ALL_UNITS = units;
   const lastOf = u => { const rs = pool.filter(r => r.unit === u && r.link && (!hasTypes || types.includes(r.activity))).map(r => r.date).sort(); return rs[rs.length-1]; };
   let h = "";
   if (!units.length) h = '<div class="alert warn">لا توجد وحدات في الشيت.</div>';
@@ -496,8 +503,23 @@ function renderList(){
   }).join("");
   updateCount();
 }
+function missingUnits(){
+  const have = new Set(items.filter(i => i.on).map(i => i.unit.trim()));
+  return ALL_UNITS.filter(u => !have.has(u.trim()));
+}
+function updateWarn(){
+  const m = missingUnits(), a = $("#dFrom").value, b = $("#dTo").value;
+  const w = $("#missWarn");
+  $("#missAsk").classList.add("hidden");
+  if (!m.length || !a || !b){ w.classList.add("hidden"); return; }
+  const f = d => d.split("-").reverse().join("/");
+  w.innerHTML = `⚠️ <b>تنبيه:</b> الشيت فيه ${ALL_UNITS.length} مصاعد، والتقارير المختارة تغطي ${ALL_UNITS.length - m.length} بس. `
+    + `${m.length === 1 ? "المصعد" : "المصاعد"} <b>${m.map(esc).join("، ")}</b> ${m.length === 1 ? "ماتعملّوش" : "ماتعملّهاش"} تقرير خلال الفترة من ${f(a)} إلى ${f(b)}.`;
+  w.classList.remove("hidden");
+}
 function updateCount(){
   refreshLetter();
+  updateWarn();
   const n = items.filter(i => i.on).length;
   $("#genBtn").textContent = n ? `إنشاء ملف PDF — ${nReports(n).replace(/[()]/g, "")}` : "لا توجد تقارير مختارة";
   $("#genBtn").disabled = !n;
@@ -624,14 +646,11 @@ function autoLetter(){
   const lines = [
     "تحية طيبة وبعد،",
     "",
-    `${intro}${what} المنفّذة على مصاعدكم خلال ${p.during}، وبيانها كالتالي:`,
-    `• عدد المصاعد: ${nUnitsAr(units)}.`,
-    ...kinds.map(k => `• ${KB[k]}: ${nReports(by[k])}.`),
-    ...(kinds.length > 1 ? [`• إجمالي التقارير المرفقة: ${nReports(list.length)}.`] : []),
+    `${intro}${what} المنفّذة على مصاعدكم خلال ${p.during}.`,
     "",
     "وقد رُتّبت التقارير داخل هذا الملف وفق الجدول الموضّح في الصفحة التالية، مع فهرس إلكتروني (Bookmarks) يسهّل الوصول إلى تقرير كل مصعد.",
     "",
-    "ونحن على أتم الاستعداد للرد على أي استفسار أو ملاحظة بخصوص هذه التقارير، شاكرين لكم ثقتكم وتعاونكم الدائم.",
+    "شاكرين لكم ثقتكم وتعاونكم الدائم.",
     "",
     "وتفضلوا بقبول فائق الاحترام والتقدير،،،",
   ];
@@ -787,7 +806,12 @@ async function buildPackage(client, a, b, list, subject, body){
 
 function setProg(f, t){ $("#prog").classList.remove("hidden"); $("#prog i").style.width = (f * 100) + "%"; $("#progTxt").textContent = t; }
 function hideResult(){ lastResult = null; $("#resultCard").classList.add("hidden"); }
+let missAck = false;
+$("#missBack").addEventListener("click", () => { $("#missAsk").classList.add("hidden"); $("#coverage").scrollIntoView({behavior:"smooth", block:"center"}); });
+$("#missGo").addEventListener("click", () => { $("#missAsk").classList.add("hidden"); missAck = true; $("#genBtn").click(); });
 $("#genBtn").addEventListener("click", async () => {
+  if (missingUnits().length && !missAck){ $("#missAsk").classList.remove("hidden"); return; }
+  missAck = false;
   const client = $("#client").value.trim();
   const a = $("#dFrom").value, b = $("#dTo").value;
   if (!client){ alertBox("اكتب اسم العميل أولاً."); $("#client").focus(); return; }
