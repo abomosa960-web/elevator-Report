@@ -3,9 +3,9 @@
  * الكود ده بيحفظ أسماء اللاعيبة والسكور في شيت جوجل، ويرجّع أحسن 5.
  *
  * الإعداد (مرة واحدة):
- * 1) افتح شيت جوجل جديد، وسمّيه مثلاً "أبطال موسى".
- * 2) من القائمة: Extensions ← Apps Script.
- * 3) امسح الموجود والصق الكود ده كله، واضغط حفظ.
+ * 1) شيت "أبطال موسى" في جوجل درايف (الـ ID تحت في SPREADSHEET_ID).
+ * 2) مشروع Apps Script مستقل فيه الكود ده.
+ * 3) لو اتعمل شيت جديد، غيّر SPREADSHEET_ID.
  * 4) Deploy ← New deployment ← النوع Web app.
  *      Execute as: Me
  *      Who has access: Anyone
@@ -16,8 +16,10 @@
 const SHEET_NAME = 'Scores';
 const TOP_N = 5;
 
+const SPREADSHEET_ID = '1nTghUdTPwcPOeZVvYUyKuKK-SBJdQ3Q21YlreUgeJ2Y'; // شيت "أبطال موسى"
+
 function sheet_() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   let sh = ss.getSheetByName(SHEET_NAME);
   if (!sh) {
     sh = ss.insertSheet(SHEET_NAME);
