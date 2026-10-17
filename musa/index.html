@@ -240,7 +240,7 @@ function over(what){state='over';sfx('crash');shake=0.4;const s=Math.floor(dist)
 let lastRun=null,boardMem=[],highlight=-1;
 try{const b=JSON.parse(localStorage.getItem('musaBoard')||'[]');if(Array.isArray(b))boardMem=b.filter(r=>r&&r.name).slice(0,5)}catch(e){}
 // shared online board: a Google Apps Script web app writing to a Google Sheet (see apps-script.gs)
-const SCORE_URL='__SCORE_URL__';
+const SCORE_URL='https://script.google.com/macros/s/AKfycby2kddRwL8Mo90S-37b06rSg7ghreGcfkqZQTkeU0h8z8WDmPPcqoMdTY-j4Bf_6mz_/exec';
 let sharedBoard=null;
 function remote(params){const q=new URLSearchParams(params).toString();return fetch(SCORE_URL+(SCORE_URL.includes('?')?'&':'?')+q,{redirect:'follow'}).then(r=>r.json())}
 function refreshRemote(){if(!SCORE_URL.startsWith('https://'))return;remote({action:'top'}).then(d=>{if(d&&Array.isArray(d.top)){sharedBoard=d.top;if(!$('boardPanel').hidden)showBoard(boardFrom)}}).catch(()=>{})}
