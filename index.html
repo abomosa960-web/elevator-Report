@@ -100,7 +100,7 @@ textarea{width:100%;font-family:monospace;font-size:12px;direction:ltr;min-heigh
 
 <section class="card hidden" id="settings">
   <h2>الإعدادات</h2>
-  <p class="muted">رابط الوسيط (Google Apps Script) — مطلوب فقط لو التقارير لم تنزل مباشرة من Loopers. الطريقة مشروحة في ملف الشرح.</p>
+  <p class="muted">رابط الوسيط (Google Apps Script) اللي بينزّل التقارير من Loopers. الرابط الأساسي مضبوط جوه الصفحة؛ اكتب هنا رابط تاني بس لو عايز تغيّره، أو سيبه فاضي.</p>
   <input type="url" id="proxy" placeholder="https://script.google.com/macros/s/…/exec" dir="ltr">
   <div class="done"><button class="btn" id="saveSet" type="button">حفظ</button><button class="btn sec" id="testSet" type="button">تجربة التنزيل</button></div>
   <div id="setMsg"></div>
@@ -536,7 +536,8 @@ $("#extraIn").addEventListener("change", async e => {
 });
 
 // ------------------------------------------------------------ downloading
-function proxyUrl(){ return store.get("falak_proxy").trim(); }
+const DEFAULT_PROXY = "https://script.google.com/macros/s/AKfycbxZaUlongbr1sOfzVRg9gYUZtRO_pGFahUjowbFqnVR2kbfy4px2dzYxcnwZ9zZVgZU/exec";
+function proxyUrl(){ return store.get("falak_proxy").trim() || DEFAULT_PROXY; }
 function b64ToBytes(b64){ const s = atob(b64); const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; }
 const isPdf = u => u.length > 4 && u[0] === 0x25 && u[1] === 0x50 && u[2] === 0x44 && u[3] === 0x46;
 async function fetchDirect(url){
@@ -841,7 +842,7 @@ function showResult(n){
 }
 
 // ------------------------------------------------------------ settings
-$("#setBtn").addEventListener("click", () => { $("#settings").classList.toggle("hidden"); $("#proxy").value = proxyUrl(); });
+$("#setBtn").addEventListener("click", () => { $("#settings").classList.toggle("hidden"); $("#proxy").value = store.get("falak_proxy"); });
 $("#saveSet").addEventListener("click", () => { store.set("falak_proxy", $("#proxy").value.trim()); $("#setMsg").innerHTML = '<div class="alert ok">تم الحفظ على هذا الجهاز.</div>'; });
 $("#testSet").addEventListener("click", async () => {
   store.set("falak_proxy", $("#proxy").value.trim());
