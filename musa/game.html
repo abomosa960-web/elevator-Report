@@ -4,13 +4,13 @@
 <meta name="theme-color" content="#2a1636">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="جري موسى">
+<meta name="apple-mobile-web-app-title" content="MO RUN">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-512.png">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 </head><body>
-<title>جري البطل موسى</title>
+<title>MO RUN</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lalezar&display=swap">
 <style>
 /* Single-look game screen: full-viewport canvas with overlay panels */
@@ -47,6 +47,8 @@ body{margin:0;background:#2a1636;color:var(--paper);font-family:var(--display);o
 .help b{color:var(--sun);font-weight:400}
 .score-big{font-size:2.2rem;color:var(--paper)}
 .best{color:var(--sun);font-size:1.3rem}
+.panel h1.brand{font-size:clamp(3.4rem,17vw,6rem);letter-spacing:.04em}
+.sub{font-size:1.5rem;color:var(--paper);margin-top:-6px}
 .btn2{border:2px solid var(--sun);background:transparent;color:var(--sun);font:inherit;font-size:1.25rem;padding:.2rem 1.4rem;border-radius:999px;cursor:pointer}
 .btn2:focus-visible{outline:3px solid var(--paper);outline-offset:3px}
 .namebox{display:flex;flex-direction:column;align-items:center;gap:8px;background:rgba(43,20,8,.55);border-radius:16px;padding:12px 14px;width:min(100%,340px)}
@@ -78,13 +80,8 @@ body{margin:0;background:#2a1636;color:var(--paper);font-family:var(--display);o
 
 <div class="panel" id="startPanel" dir="rtl">
   <img id="heroImg" alt="البطل موسى">
-  <h1>جري البطل موسى</h1>
-  <div class="help">
-    <b>اسحب يمين أو شمال</b><span>غيّر الحارة</span>
-    <b>اسحب لفوق</b><span>نط فوق الحاجز</span>
-    <b>اسحب لتحت</b><span>اتزحلق تحت البوابة</span>
-  </div>
-  <p>اهرب من عم شحتة، اطلع على البساط والميكروباص، اركب الزلاجة، واجمع العملات!</p>
+  <h1 class="brand" dir="ltr">MO RUN</h1>
+  <div class="sub">جري البطل موسى</div>
   <button class="btn" id="startBtn" type="button">ابدأ</button>
   <button class="btn2" id="boardBtn1" type="button">لوحة الأبطال</button>
 </div>
