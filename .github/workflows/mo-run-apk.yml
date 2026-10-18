@@ -1,0 +1,40 @@
+name: MO RUN APK
+
+on:
+  push:
+    branches: [main]
+    paths: ['musa/**', 'musa-android/**', '.github/workflows/mo-run-apk.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Bundle the game for offline play
+        run: cp musa/game.html musa-android/app/src/main/assets/game.html
+      - name: Build APK
+        working-directory: musa-android
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: gradle --no-daemon assembleDebug
+      - name: Rename
+        run: cp musa-android/app/build/outputs/apk/debug/app-debug.apk MO-RUN.apk
+      - name: Publish as a download link
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: mo-run-apk
+          name: MO RUN (Android)
+          body: "لعبة MO RUN لأندرويد. نزّل الملف MO-RUN.apk وافتحه على الموبايل."
+          files: MO-RUN.apk
+          make_latest: true
